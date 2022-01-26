@@ -1,0 +1,8 @@
+{
+  "database": {
+    "host": "localhost:27017",
+    "user": "root",
+    "password": "",
+    "database": "invoker_db"
+  }
+}
