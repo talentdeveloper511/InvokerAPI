@@ -9,10 +9,16 @@ var cors = require('cors')
 var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 var config = require('./config/mongodb.json')
+var TokenModel = require('./models/TokenModel')
+const res = require('express/lib/response')
 
 var app = express()
 
-//DB connection
+// Mockup Data
+var tokenData =
+  'GWXkqmxqWQMHX7PjmX2qDw6yESrDjnh8ogd7wrx2skiN EFZH16wJ3xtE7caYDC87ojaVpLGofaaHTq3j9B8ADMfF FEaRD6P2MrRfZPh1W1CMKDyndhFnQLKzXtb9kLNy3Tgs'
+
+// DB connection
 var mongoDB =
   'mongodb://' + config.database.host + '/' + config.database.database
 
@@ -23,6 +29,15 @@ mongoose
     if (process.env.NODE_ENV !== 'test') {
       console.log('Connected to %s', mongoDB)
       console.log('MongoDB is connected ... \n')
+
+      for (var i = 0; i < tokenData.split(' ').length; i++) {
+        var savedata = new TokenModel({
+          address: tokenData.split(' ')[i],
+        })
+        savedata.save((data) => {
+          console.log(data)
+        })
+      }
     }
   })
   .catch((err) => {
