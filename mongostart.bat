@@ -1,0 +1,1 @@
+mongod --dbpath F:\Blockchain\inv\DB
