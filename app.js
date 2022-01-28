@@ -5,22 +5,30 @@ var path = require('path')
 cookieParser = require('cookie-parser')
 var logger = require('morgan')
 var cors = require('cors')
+var web3 = require('@solana/web3.js')
 
 var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 var config = require('./config/mongodb.json')
 var TokenModel = require('./models/TokenModel')
 const res = require('express/lib/response')
+const { filters } = require('pug/lib')
 
 var app = express()
 
 // Mockup Data
 var tokenData =
-  'GWXkqmxqWQMHX7PjmX2qDw6yESrDjnh8ogd7wrx2skiN EFZH16wJ3xtE7caYDC87ojaVpLGofaaHTq3j9B8ADMfF FEaRD6P2MrRfZPh1W1CMKDyndhFnQLKzXtb9kLNy3Tgs'
+  '3p2vBFDnk6JF9faqy6LmmivV4udk5pLPTbjyWaaKJSWN ABMxi67zHLz19bpgpzExq7v4a1C4SRp8sTtJC3sYGWBA'
+var tokenAddress = '3p2vBFDnk6JF9faqy6LmmivV4udk5pLPTbjyWaaKJSWN'
 
 // DB connection
 var mongoDB =
   'mongodb://' + config.database.host + '/' + config.database.database
+
+var connection = new web3.Connection(
+  web3.clusterApiUrl('mainnet-beta'),
+  'confirmed',
+)
 
 mongoose
   .connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -30,20 +38,45 @@ mongoose
       console.log('Connected to %s', mongoDB)
       console.log('MongoDB is connected ... \n')
 
-      for (var i = 0; i < tokenData.split(' ').length; i++) {
-        var savedata = new TokenModel({
-          address: tokenData.split(' ')[i],
-        })
-        savedata.save((data) => {
-          console.log(data)
-        })
-      }
+      getHolderAddresses()
+
+      /*    // save token addresses  
+
+        for (var i = 0; i < tokenData.split(' ').length; i++) {
+          var savedata = new TokenModel({
+            address: tokenData.split(' ')[i],
+          })
+          savedata.save((data) => {
+            console.log(data)
+          })
+        } 
+      
+      */
     }
   })
   .catch((err) => {
     console.log('App starting error'.err)
     process.exit(1)
   })
+
+async function getHolderAddresses() {
+  const address = await connection.getProgramAccounts(
+    new web3.PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'),
+    {
+      filters: [
+        { dataSize: 165 },
+        {
+          memcmp: {
+            offset: 40,
+            bytes: '3p2vBFDnk6JF9faqy6LmmivV4udk5pLPTbjyWaaKJSWN',
+          },
+        },
+      ],
+    },
+  )
+
+  console.log(address)
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
